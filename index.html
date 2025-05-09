@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Formulaire DRAGON33</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+    }
+    input, select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      margin-right: 10px;
+    }
+    footer {
+      margin-top: auto; /* Push footer to the bottom of the page */
+      text-align: center;
+      font-size: 12px;
+      padding: 10px;
+      background-color: #f1f1f1;
+      border-top: 1px solid #ddd;
+    }
+  </style>
+</head>
+<body>
+  <h2>Formulaire de demande de transport sanitaire via DRAGON33</h2>
+
+  <form id="transportForm">
+    <label>Nom du médecin :
+      <input type="text" id="medecin" required />
+    </label>
+
+    <label>Type de transport :
+      <select id="transport">
+        <option value="SMUH">SMUH</option>
+        <option value="Transport sanitaire non-SMUH">Transport sanitaire non-SMUH</option>
+      </select>
+    </label>
+
+    <label>Hôpital de prise en charge :
+      <input type="text" id="hopitalOrigine" required />
+    </label>
+
+    <label>Heure de prise en charge :
+      <input type="time" id="heurePriseEnCharge" required />
+    </label>
+
+    <label>Hôpital de destination :
+      <input type="text" id="hopitalDestination" required />
+    </label>
+
+    <button type="button" onclick="genererPDF()">Générer le PDF</button>
+    <button type="button" onclick="imprimerPDF()">Imprimer le PDF</button>
+  </form>
+
+  <footer>
+    <p>Développé par Hugo DAGNAS - <a href="mailto:hugo.dagnas@chu-bordeaux.fr">hugo.dagnas@chu-bordeaux.fr</a></p>
+  </footer>
+
+  <script>
+    async function genererContenuPDF(doc, medecin, transport, hopitalOrigine, heurePrise, hopitalDestination) {
+      const now = new Date();
+      const heureActuelle = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const dateActuelle = now.toLocaleDateString('fr-FR');
+
+      // En-tête
+      doc.setFont("Helvetica", "bold");
+      doc.setFontSize(10);
+      doc.text("Annexe 10 : formulaire pour l'exécution d'un transport sanitaire urgent", 180, 20, { align: "right" });
+      const annexe10Width = doc.getTextWidth("Annexe 10");
+      doc.setLineWidth(0.5);
+      doc.line(180 - annexe10Width, 22, 180, 22);
+
+      let y = 30;
+
+      doc.setFontSize(14);
+      doc.text("EXÉCUTION D'UN TRANSPORT SANITAIRE HÉLIPORTÉ", 105, y, { align: "center" });
+
+      y += 20;
+      doc.setFontSize(12);
+      doc.setFont("Helvetica", "normal");
+      doc.text("IDENTIFICATION DE LA CATÉGORIE DU VOL", 20, y);
+      y += 10;
+      doc.text("SAMU de la Gironde", 20, y);
+      y += 10;
+      doc.text(`DATE : ${dateActuelle}      HEURE : ${heureActuelle}`, 20, y);
+
+      y += 15;
+      doc.text(`Je soussigné M. / Mme le Docteur ${medecin}`, 20, y);
+      y += 10;
+      doc.text("Régulateur au SAMU 33,", 20, y);
+      y += 10;
+      doc.text("Prescris une évacuation médicalisée par hélicoptère sous le régime de :", 20, y);
+      y += 10;
+      doc.text(transport, 30, y);
+
+      y += 15;
+      doc.text(`Hôpital d'origine de la personne à prendre en charge : ${hopitalOrigine}`, 20, y);
+      y += 10;
+      doc.text(`Heure de prise en charge : ${heurePrise}`, 20, y);
+      y += 10;
+      doc.text(`Hôpital de destination : ${hopitalDestination}`, 20, y);
+
+      y += 15;
+      doc.text("Ce vol sera réalisé après acceptation du pilote commandant de bord de l’hélicoptère DRAGON33", 20, y);
+      y += 7;
+      doc.text("de la Sécurité Civile.", 20, y);
+
+      y += 15;
+      doc.setFont("Helvetica", "italic");
+      doc.setFontSize(10);
+      doc.text("NB : Les transports sanitaires non-SMUH effectués par la sécurité civile seront facturés au tarif en vigueur.", 20, y);
+      y += 5;
+      doc.text("La signature du présent formulaire vaut acceptation du tarif de la prestation.", 20, y);
+
+      y += 13;
+      doc.setFont("Helvetica", "normal");
+      doc.setFontSize(12);
+      doc.text(`Fait à BORDEAUX, le ${dateActuelle}`, 20, y);
+
+      y += 13;
+      doc.text(`Signature : Dr ${medecin}`, 20, y);
+      y += 6;
+      doc.setFont("Helvetica", "italic");
+      doc.setFontSize(10);
+      doc.text("Document signé numériquement", 20, y);
+
+      y += 15;
+      doc.setFont("Helvetica", "italic");
+      doc.setFontSize(8);
+      doc.text("À transmettre par voie électronique au :", 20, y);
+      y += 4;
+      doc.setFont("Helvetica", "normal");
+      doc.text("CODIS/SID (CODIS du département siège de la base hélicoptère),", 25, y);
+      y += 4;
+      doc.text("COZ Sud-ouest,", 25, y);
+      y += 4;
+      doc.text("Base Hélicoptère de Sécurité Civile du DRAGON concerné.", 25, y);
+      y += 8;
+      doc.text("Application :", 20, y);
+      y += 4;
+      doc.text("• de la circulaire DHOC/E n°2000/535 du 13 octobre 2000,", 25, y);
+      y += 4;
+      doc.text("• de la note DGOS/R2/2016/219 du 4 juillet 2016.", 25, y);
+      y += 4;
+      doc.text("Zone Sud-Ouest / Ordre zonal d'opérations hélicoptères de sécurité civile", 25, y);
+    }
+
+    function genererPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      const medecin = document.getElementById("medecin").value;
+      const transport = document.getElementById("transport").value;
+      const hopitalOrigine = document.getElementById("hopitalOrigine").value;
+      const heurePrise = document.getElementById("heurePriseEnCharge").value;
+      const hopitalDestination = document.getElementById("hopitalDestination").value;
+
+      if (!medecin || !hopitalOrigine || !heurePrise || !hopitalDestination) {
+        alert("Tous les champs doivent être remplis avant de générer le PDF.");
+        return;
+      }
+
+      const now = new Date();
+      const dateHeure = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}`;
+
+      genererContenuPDF(doc, medecin, transport, hopitalOrigine, heurePrise, hopitalDestination);
+      doc.save(`Annexe10_FormulaireDeDemande_${dateHeure}.pdf`);
+    }
+
+    function imprimerPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      const medecin = document.getElementById("medecin").value;
+      const transport = document.getElementById("transport").value;
+      const hopitalOrigine = document.getElementById("hopitalOrigine").value;
+      const heurePrise = document.getElementById("heurePriseEnCharge").value;
+      const hopitalDestination = document.getElementById("hopitalDestination").value;
+
+      if (!medecin || !hopitalOrigine || !heurePrise || !hopitalDestination) {
+        alert("Tous les champs doivent être remplis avant d'imprimer le PDF.");
+        return;
+      }
+
+      genererContenuPDF(doc, medecin, transport, hopitalOrigine, heurePrise, hopitalDestination);
+      doc.autoPrint();
+      window.open(doc.output("bloburl"), "_blank");
+    }
+  </script>
+</body>
+</html>
